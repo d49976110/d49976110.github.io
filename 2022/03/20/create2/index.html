@@ -2,7 +2,7 @@
 <html class="has-navbar-fixed-top">
 <head>
     <meta charset="utf-8">
-<title>create2 - Hexo</title>
+<title>如何使用solidity中的create2 - Hexo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/outdated-browser/1.1.5/outdatedbrowser.min.css">
@@ -18,15 +18,15 @@
 
 
 
-    <meta name="description" content="目的 透過 create2 可以算出未來會產生出合約的地址 因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址  參考文章第一篇、第二篇 原本的合約創建方式新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到： 合約地址 &#x3D; hash (msg.sender, nonce ) 問題在於，你很難真正佔住地址 1new DeployWithCreate2{salt">
+    <meta name="description" content="目的 透過 create2 可以算出未來會產生出合約的地址 因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址  原本的合約創建方式新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到： 合約地址 &#x3D; hash (msg.sender, nonce ) 問題在於，你很難真正佔住地址 1new DeployWithCreate2{salt: bytes32(_s">
 <meta property="og:type" content="article">
-<meta property="og:title" content="create2">
-<meta property="og:url" content="http://example.com/2022/04/20/create2/index.html">
+<meta property="og:title" content="如何使用solidity中的create2">
+<meta property="og:url" content="http://example.com/2022/03/20/create2/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="目的 透過 create2 可以算出未來會產生出合約的地址 因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址  參考文章第一篇、第二篇 原本的合約創建方式新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到： 合約地址 &#x3D; hash (msg.sender, nonce ) 問題在於，你很難真正佔住地址 1new DeployWithCreate2{salt">
+<meta property="og:description" content="目的 透過 create2 可以算出未來會產生出合約的地址 因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址  原本的合約創建方式新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到： 合約地址 &#x3D; hash (msg.sender, nonce ) 問題在於，你很難真正佔住地址 1new DeployWithCreate2{salt: bytes32(_s">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-04-20T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-20T11:38:12.968Z">
+<meta property="article:published_time" content="2022-03-20T11:37:14.000Z">
+<meta property="article:modified_time" content="2022-06-20T14:34:47.065Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -146,20 +146,14 @@
     <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            create2
+            如何使用solidity中的create2
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
-            <time datetime="2022-04-20T11:37:14.000Z" itemprop="datePublished">20 April 2022</time>
+            <time datetime="2022-03-20T11:37:14.000Z" itemprop="datePublished">20 March 2022</time>
         </span>
         
-        
-        <span class="column is-narrow">
-            
-            
-            4 minutes read (About 558 words)
-        </span>
         
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
@@ -168,14 +162,12 @@
 <li>透過 create2 可以算出未來會產生出合約的地址</li>
 <li>因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址</li>
 </ul>
-<p><a target="_blank" rel="noopener" href="https://posts.careerengine.us/p/5f8b40ee44726b0657c10f04">參考文章第一篇、第二篇</a></p>
 <h1 id="原本的合約創建方式"><a href="#原本的合約創建方式" class="headerlink" title="原本的合約創建方式"></a>原本的合約創建方式</h1><p>新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到：</p>
 <p><strong><code>合約地址 = hash (msg.sender, nonce )</code></strong></p>
 <p>問題在於，你很難真正佔住地址</p>
-<h1 id=""><a href="#" class="headerlink" title=""></a></h1><figure class="highlight jsx hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">new</span> <span class="title class_">DeployWithCreate2</span>{<span class="hljs-attr">salt</span>: <span class="title function_">bytes32</span>(_salt)}(msg.<span class="hljs-property">sender</span>);</span><br></pre></td></tr></tbody></table></figure>
+<h1 id=""><a href="#" class="headerlink" title=""></a></h1><figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">new</span> <span class="title class_">DeployWithCreate2</span>{<span class="hljs-attr">salt</span>: <span class="title function_">bytes32</span>(_salt)}(msg.<span class="hljs-property">sender</span>);</span><br></pre></td></tr></tbody></table></figure>
 
-<h1 id="create2-地址計算方式"><a href="#create2-地址計算方式" class="headerlink" title="create2 地址計算方式"></a>create2 地址計算方式</h1><h2 id="文件解說"><a href="#文件解說" class="headerlink" title="文件解說"></a>文件解說</h2><p><a target="_blank" rel="noopener" href="https://ethereum-blockchain-developer.com/110-upgrade-smart-contracts/12-metamorphosis-create2/">參考</a></p>
-<p><code>keccak256(0xff ++ deployersAddr ++ salt ++ keccak256(bytecode))[12:]</code></p>
+<h1 id="create2-地址計算方式"><a href="#create2-地址計算方式" class="headerlink" title="create2 地址計算方式"></a>create2 地址計算方式</h1><h2 id="文件解說"><a href="#文件解說" class="headerlink" title="文件解說"></a>文件解說</h2><p><code>keccak256(0xff ++ deployersAddr ++ salt ++ keccak256(bytecode))[12:]</code></p>
 <ol>
 <li>0xFF, is a single byte</li>
 <li>the address of the deployer, so the Smart Contracts address that sends the CREATE2</li>
@@ -183,8 +175,10 @@
 <li>And the hashed bytecode that will be deployed on that particular address</li>
 </ol>
 <h2 id="計算-hash"><a href="#計算-hash" class="headerlink" title="計算 hash"></a>計算 hash</h2><ul>
-<li>先取得要部署合約的<strong>creation code</strong>，<code>type(DeployWithCreate2).creationCode</code></li>
-<li>如果部署的合約有參數，則在第二個參數傳入，並使用<code>abi.encode</code><br><code>abi.encodePacked(bytecode, abi.encode(_owner))</code><br>如果有多個參數，則將多個參數包含在 abi.encode 中<figure class="highlight jsx hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">getBytesCode</span>(<span class="hljs-params">address _owner, uint _uint</span>) public pure returns (bytes memory) {</span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">DeployWithCreate2</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    <span class="hljs-keyword">return</span> abi.<span class="title function_">encodePacked</span>(bytecode, abi.<span class="title function_">encode</span>(_owner,_uint));</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
+<li><p>先取得要部署合約的<strong>creation code</strong>，<code>type(DeployWithCreate2).creationCode</code></p>
+</li>
+<li><p>如果部署的合約有參數，則在第二個參數傳入，並使用<code>abi.encode</code><br><code>abi.encodePacked(bytecode, abi.encode(_owner))</code><br>如果有多個參數，則將多個參數包含在 abi.encode 中</p>
+<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">function getBytesCode(address _owner, uint _uint) public pure returns (bytes memory) {</span><br><span class="line">    bytes memory bytecode = type(DeployWithCreate2).creationCode;</span><br><span class="line">    return abi.encodePacked(bytecode, abi.encode(_owner,_uint));</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
 </ul>
 <h2 id="計算地址"><a href="#計算地址" class="headerlink" title="計算地址"></a>計算地址</h2><ul>
 <li>先計算出 hash</li>
@@ -206,7 +200,7 @@
 <h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><ul>
 <li>new 合約，使用 salt，參數則是寫在()中<br><code>new DeployWithCreate2{salt: bytes32(_salt)}(msg.sender)</code></li>
 </ul>
-<h2 id="完整合約"><a href="#完整合約" class="headerlink" title="完整合約"></a>完整合約</h2><figure class="highlight jsx hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity &gt;=<span class="hljs-number">0.8</span><span class="hljs-number">.0</span> &lt;<span class="hljs-number">0.9</span><span class="hljs-number">.0</span>;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">import</span> <span class="hljs-string">"@openzeppelin/contracts/token/ERC20/ERC20.sol"</span>;</span><br><span class="line"></span><br><span class="line">contract <span class="title class_">DeployWithCreate2</span> {</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">constructor</span>(<span class="hljs-params">address _address</span>) {</span><br><span class="line"></span><br><span class="line">        address hotWallet = _address;</span><br><span class="line">				<span class="hljs-comment">//將token賦予要使用幣的地址</span></span><br><span class="line">        <span class="title class_">ERC20</span> token = <span class="title class_">ERC20</span>(<span class="hljs-number">0xcacE8f13C6C857c8a6a47B7aC0BA53b755237C74</span>);</span><br><span class="line"></span><br><span class="line">        token.<span class="title function_">transfer</span>(hotWallet,token.<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>)));</span><br><span class="line">        selfdestruct (<span class="title function_">payable</span>(address (<span class="hljs-number">0</span>)));</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">contract <span class="title class_">Create2Factory</span> {</span><br><span class="line">    event <span class="title class_">Deploy</span>(address _address);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">deploy</span>(<span class="hljs-params">uint256 _salt</span>) public {</span><br><span class="line">        <span class="title class_">DeployWithCreate2</span> _contract = <span class="hljs-keyword">new</span> <span class="title class_">DeployWithCreate2</span>{<span class="hljs-attr">salt</span>: <span class="title function_">bytes32</span>(_salt)}(msg.<span class="hljs-property">sender</span>);</span><br><span class="line"></span><br><span class="line">        emit <span class="title class_">Deploy</span>(<span class="title function_">address</span>(_contract));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getAddress</span>(<span class="hljs-params">bytes memory bytecode, uint256 _salt</span>) public view returns (address) {</span><br><span class="line">        bytes32 hash = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(<span class="title function_">bytes1</span>(<span class="hljs-number">0xff</span>), <span class="title function_">address</span>(<span class="variable language_">this</span>), _salt, <span class="title function_">keccak256</span>(bytecode)));</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="title function_">address</span>(<span class="title function_">uint160</span>(<span class="title function_">uint256</span>(hash)));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getBytesCode</span>(<span class="hljs-params">address _owner</span>) public pure returns (bytes memory) {</span><br><span class="line">        bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">DeployWithCreate2</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">        <span class="hljs-keyword">return</span> abi.<span class="title function_">encodePacked</span>(bytecode, abi.<span class="title function_">encode</span>(_owner));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+<h2 id="完整合約"><a href="#完整合約" class="headerlink" title="完整合約"></a>完整合約</h2><figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity &gt;=<span class="hljs-number">0.8</span><span class="hljs-number">.0</span> &lt;<span class="hljs-number">0.9</span><span class="hljs-number">.0</span>;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">import</span> <span class="hljs-string">"@openzeppelin/contracts/token/ERC20/ERC20.sol"</span>;</span><br><span class="line"></span><br><span class="line">contract <span class="title class_">DeployWithCreate2</span> {</span><br><span class="line">    address public owner;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">constructor</span>(<span class="hljs-params">address _address</span>) {</span><br><span class="line"></span><br><span class="line">        address hotWallet = _address;</span><br><span class="line">				<span class="hljs-comment">//將token賦予要使用幣的地址</span></span><br><span class="line">        <span class="title class_">ERC20</span> token = <span class="title class_">ERC20</span>(<span class="hljs-number">0xcacE8f13C6C857c8a6a47B7aC0BA53b755237C74</span>);</span><br><span class="line"></span><br><span class="line">        token.<span class="title function_">transfer</span>(hotWallet,token.<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>)));</span><br><span class="line">        selfdestruct (<span class="title function_">payable</span>(address (<span class="hljs-number">0</span>)));</span><br><span class="line"></span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">contract <span class="title class_">Create2Factory</span> {</span><br><span class="line">    event <span class="title class_">Deploy</span>(address _address);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">deploy</span>(<span class="hljs-params">uint256 _salt</span>) public {</span><br><span class="line">        <span class="title class_">DeployWithCreate2</span> _contract = <span class="hljs-keyword">new</span> <span class="title class_">DeployWithCreate2</span>{<span class="hljs-attr">salt</span>: <span class="title function_">bytes32</span>(_salt)}(msg.<span class="hljs-property">sender</span>);</span><br><span class="line"></span><br><span class="line">        emit <span class="title class_">Deploy</span>(<span class="title function_">address</span>(_contract));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getAddress</span>(<span class="hljs-params">bytes memory bytecode, uint256 _salt</span>) public view returns (address) {</span><br><span class="line">        bytes32 hash = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(<span class="title function_">bytes1</span>(<span class="hljs-number">0xff</span>), <span class="title function_">address</span>(<span class="variable language_">this</span>), _salt, <span class="title function_">keccak256</span>(bytecode)));</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="title function_">address</span>(<span class="title function_">uint160</span>(<span class="title function_">uint256</span>(hash)));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getBytesCode</span>(<span class="hljs-params">address _owner</span>) public pure returns (bytes memory) {</span><br><span class="line">        bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">DeployWithCreate2</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">        <span class="hljs-keyword">return</span> abi.<span class="title function_">encodePacked</span>(bytecode, abi.<span class="title function_">encode</span>(_owner));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 </body></html>
     
     </div>
@@ -215,7 +209,7 @@
     <div class="columns is-mobile is-multiline article-nav">
         <span class="column is-12-mobile is-half-desktop  article-nav-prev">
             
-            <a href="/2022/06/20/hello-world/">Hello World</a>
+            <a href="/2022/04/17/uniswapv2/">Uniswap v2機制說明與程式碼解說</a>
             
         </span>
         <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-next">
@@ -237,7 +231,7 @@
     js.src = "//connect.facebook.net/en-AU/sdk.js#xfbml=1&version=v2.8";
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
-<div class="fb-comments" data-width="100%" data-href="http://example.com/2022/04/20/create2/" data-num-posts="5"></div>
+<div class="fb-comments" data-width="100%" data-href="http://example.com/2022/03/20/create2/" data-num-posts="5"></div>
 
 </div>
 
