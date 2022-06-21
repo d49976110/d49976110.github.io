@@ -135,7 +135,13 @@
     </div>
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
-        <html><head></head><body><h2 id="abi-encodeWithSignature-說明"><a href="#abi-encodeWithSignature-說明" class="headerlink" title="abi.encodeWithSignature 說明"></a>abi.encodeWithSignature 說明</h2><p><code>abi.encodeWithSignature(string signature, ...)</code> 等於<code>abi.encodeWithSelector(bytes4(keccak256(signature), ...)</code></p>
+        <html><head></head><body><h2 id="abi-encodeWithSignature-說明"><a href="#abi-encodeWithSignature-說明" class="headerlink" title="abi.encodeWithSignature 說明"></a>abi.encodeWithSignature 說明</h2><p>總共有分為以下四種：</p>
+<ul>
+<li><code>abi.encode(...) returns (bytes)</code>：計算<strong>參數</strong>的 ABI 編碼。</li>
+<li><code>abi.encodePacked(...) returns (bytes)</code>：計算<strong>參數</strong>的打包編碼</li>
+<li><code>abi. encodeWithSelector(bytes4 selector, ...) returns (bytes)</code>： 計算<strong>函數選擇器</strong>和<strong>參數</strong>的 ABI 編碼</li>
+<li><code>abi.encodeWithSelector(bytes4(keccak256(signature), ...)</code>等於<code>abi.encodeWithSignature(string signature, ...)</code></li>
+</ul>
 <p>底下的這三種方式所得到的結果都是一樣的<code>0x60fe47b1</code></p>
 <figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">abi.encodeWithSelector(bytes4(keccak256("set(uint256)")));</span><br><span class="line">abi.encodeWithSignature("set(uint256)");</span><br><span class="line">bytes4(keccak256("set(uint256)"));</span><br></pre></td></tr></tbody></table></figure>
 
