@@ -123,6 +123,56 @@
         <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
+            <a href="/2022/06/21/abi-%E8%AA%AA%E6%98%8E/" itemprop="url">Solidity abi.encodeWithSignature &amp; call function 說明</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2022-06-21T07:40:14.000Z" itemprop="datePublished">21 June 2022</time>
+        </span>
+        
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><h2 id="abi-encodeWithSignature-說明"><a href="#abi-encodeWithSignature-說明" class="headerlink" title="abi.encodeWithSignature 說明"></a>abi.encodeWithSignature 說明</h2><p><code>abi.encodeWithSignature(string signature, ...)</code> 等於<code>abi.encodeWithSelector(bytes4(keccak256(signature), ...)</code></p>
+<p>底下的這三種方式所得到的結果都是一樣的<code>0x60fe47b1</code></p>
+<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">abi.encodeWithSelector(bytes4(keccak256("set(uint256)")));</span><br><span class="line">abi.encodeWithSignature("set(uint256)");</span><br><span class="line">bytes4(keccak256("set(uint256)"));</span><br></pre></td></tr></tbody></table></figure>
+
+<p>如果需要加參數</p>
+<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">abi.encodeWithSelector(bytes4(keccak256("set(uint256)")),10);</span><br><span class="line">abi.encodeWithSignature("set(uint256)",10);</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h3><ul>
+<li><code>abi.encodeWithSignature</code>的返回值為 bytes，以下面為例，返回值會有 36 個字節，前 4 個會是 function 的，後面 32 個則是參數的<br><code>abi.encodeWithSignature("store(uint256)",10)</code> =<ul>
+<li>此四個 bytes 是 function selector<code>0x6057361d</code></li>
+<li>此 32 個 bytes 是參數的<code>000000000000000000000000000000000000000000000000000000000000000a</code></li>
+</ul>
+</li>
+<li><code>abi.encodeWithSignature</code>實作原理就是透過<code>keccak256(bytes(function_name))</code>，執行完後取前四個 bytes，若沒參數則補 0</li>
+</ul>
+<h2 id="call-function"><a href="#call-function" class="headerlink" title="call function"></a>call function</h2><p>可以使用底層的 call 來呼叫其他合約的 function<code>&lt;address&gt;.call(bytes memory)，</code>通常的使用時機為製作 multisig wallet 時會使用到，尤其中的一個多錢包擁有者發起一個提案，裡面的 data 放上需要執行的<code>bytes，</code>當此提案通過後，即可透過 call 執行</p>
+<p>使用底層的 call，可以直接使用<code>address</code>來透過<code>abi.encodeWithSignature(”set(uint256)”,10)</code>呼叫其他合約的 function</p>
+<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//a.contract</span><br><span class="line">function myFunction(uint _x,address _addr)publicreturns(uint,uint) {</span><br><span class="line">	// do something</span><br><span class="line">	return (a, b);</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line">//multisig wallet</span><br><span class="line">(bool success,bytes memory result)= addr.call(abi.encodeWithSignature("myFunction(uint,address)", 10, msg.sender));</span><br></pre></td></tr></tbody></table></figure>
+
+<h3 id="摘要-1"><a href="#摘要-1" class="headerlink" title="摘要"></a>摘要</h3><ul>
+<li>call function 內需要的是 bytes，所以需要透過<code>abi.encodeWithSignature</code>轉換</li>
+<li><code>abi.encodeWithSignature</code>內的方法參數型別如果是 uint，需要寫完整的型別<code>uint256</code></li>
+<li>call 執行完成後回傳的參數是<code>bool</code>與<code>bytes</code><br><strong><code>&lt;address&gt;.call(bytes memory) returns (bool, bytes memory)</code></strong></li>
+</ul>
+</body></html>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
             <a href="/2022/04/17/uniswapv2/" itemprop="url">Uniswap v2機制說明與程式碼解說</a>
         
     </h1>
@@ -168,7 +218,7 @@
 <h2 id="Factory"><a href="#Factory" class="headerlink" title="Factory"></a>Factory</h2><p>#創建 #排序 #uniswap</p>
 <ul>
 <li><p>create pairs 的時候就已經先做好 tokenA &amp; tokenB 的排序</p>
-<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(address token0, address token1) = tokenA &lt; tokenB</span><br><span class="line">    ? (tokenA, tokenB)</span><br><span class="line">    : (tokenB, tokenA);</span><br></pre></td></tr></tbody></table></figure></li>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">createPair</span>(<span class="hljs-params">address tokenA, address tokenB</span>) external returns (address pair) {</span><br><span class="line">    <span class="hljs-built_in">require</span>(tokenA != tokenB, <span class="hljs-string">'UniswapV2: IDENTICAL_ADDRESSES'</span>);</span><br><span class="line">    (address token0, address token1) = tokenA &lt; tokenB ? (tokenA, tokenB) : (tokenB, tokenA);</span><br><span class="line">    <span class="hljs-built_in">require</span>(token0 != <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: ZERO_ADDRESS'</span>);</span><br><span class="line">    <span class="hljs-built_in">require</span>(getPair[token0][token1] == <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: PAIR_EXISTS'</span>); <span class="hljs-comment">// single check is sufficient</span></span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">UniswapV2Pair</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    bytes32 salt = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(token0, token1));</span><br><span class="line">    assembly {</span><br><span class="line">        pair := <span class="title function_">create2</span>(<span class="hljs-number">0</span>, <span class="title function_">add</span>(bytecode, <span class="hljs-number">32</span>), <span class="title function_">mload</span>(bytecode), salt)</span><br><span class="line">    }</span><br><span class="line">    <span class="title class_">IUniswapV</span>2Pair(pair).<span class="title function_">initialize</span>(token0, token1);</span><br><span class="line">    getPair[token0][token1] = pair;</span><br><span class="line">    getPair[token1][token0] = pair; <span class="hljs-comment">// populate mapping in the reverse direction</span></span><br><span class="line">    allPairs.<span class="title function_">push</span>(pair);</span><br><span class="line">    emit <span class="title class_">PairCreated</span>(token0, token1, pair, allPairs.<span class="hljs-property">length</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
 </ul>
 <h2 id="UniswapERC20"><a href="#UniswapERC20" class="headerlink" title="UniswapERC20"></a>UniswapERC20</h2><h3 id="permit-簽章"><a href="#permit-簽章" class="headerlink" title="permit 簽章"></a>permit 簽章</h3><ul>
 <li>簽張的內容：<code>[PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline]</code></li>

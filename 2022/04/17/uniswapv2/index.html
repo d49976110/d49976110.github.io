@@ -28,7 +28,7 @@
 <meta property="og:image" content="http://example.com/images/uniswapv2/uniswap.png">
 <meta property="og:image" content="http://example.com/images/uniswapv2/pairs.png">
 <meta property="article:published_time" content="2022-04-17T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-21T06:15:11.122Z">
+<meta property="article:modified_time" content="2022-06-21T06:20:56.553Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="http://example.com/images/uniswapv2/uniswap.png">
@@ -177,7 +177,7 @@
 <h2 id="Factory"><a href="#Factory" class="headerlink" title="Factory"></a>Factory</h2><p>#創建 #排序 #uniswap</p>
 <ul>
 <li><p>create pairs 的時候就已經先做好 tokenA &amp; tokenB 的排序</p>
-<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(address token0, address token1) = tokenA &lt; tokenB</span><br><span class="line">    ? (tokenA, tokenB)</span><br><span class="line">    : (tokenB, tokenA);</span><br></pre></td></tr></tbody></table></figure></li>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">createPair</span>(<span class="hljs-params">address tokenA, address tokenB</span>) external returns (address pair) {</span><br><span class="line">    <span class="hljs-built_in">require</span>(tokenA != tokenB, <span class="hljs-string">'UniswapV2: IDENTICAL_ADDRESSES'</span>);</span><br><span class="line">    (address token0, address token1) = tokenA &lt; tokenB ? (tokenA, tokenB) : (tokenB, tokenA);</span><br><span class="line">    <span class="hljs-built_in">require</span>(token0 != <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: ZERO_ADDRESS'</span>);</span><br><span class="line">    <span class="hljs-built_in">require</span>(getPair[token0][token1] == <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: PAIR_EXISTS'</span>); <span class="hljs-comment">// single check is sufficient</span></span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">UniswapV2Pair</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    bytes32 salt = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(token0, token1));</span><br><span class="line">    assembly {</span><br><span class="line">        pair := <span class="title function_">create2</span>(<span class="hljs-number">0</span>, <span class="title function_">add</span>(bytecode, <span class="hljs-number">32</span>), <span class="title function_">mload</span>(bytecode), salt)</span><br><span class="line">    }</span><br><span class="line">    <span class="title class_">IUniswapV</span>2Pair(pair).<span class="title function_">initialize</span>(token0, token1);</span><br><span class="line">    getPair[token0][token1] = pair;</span><br><span class="line">    getPair[token1][token0] = pair; <span class="hljs-comment">// populate mapping in the reverse direction</span></span><br><span class="line">    allPairs.<span class="title function_">push</span>(pair);</span><br><span class="line">    emit <span class="title class_">PairCreated</span>(token0, token1, pair, allPairs.<span class="hljs-property">length</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
 </ul>
 <h2 id="UniswapERC20"><a href="#UniswapERC20" class="headerlink" title="UniswapERC20"></a>UniswapERC20</h2><h3 id="permit-簽章"><a href="#permit-簽章" class="headerlink" title="permit 簽章"></a>permit 簽章</h3><ul>
 <li>簽張的內容：<code>[PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline]</code></li>
@@ -207,7 +207,9 @@
     
     
     <div class="columns is-mobile is-multiline article-nav">
-        <span class="column is-12-mobile is-half-desktop is-hidden-mobile article-nav-prev">
+        <span class="column is-12-mobile is-half-desktop  article-nav-prev">
+            
+            <a href="/2022/06/21/abi-%E8%AA%AA%E6%98%8E/">Solidity abi.encodeWithSignature &amp; call function 說明</a>
             
         </span>
         <span class="column is-12-mobile is-half-desktop  article-nav-next">
