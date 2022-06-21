@@ -26,7 +26,7 @@
 <meta property="og:description" content="abi.encodeWithSignature 說明abi.encodeWithSignature(string signature, ...) 等於abi.encodeWithSelector(bytes4(keccak256(signature), ...) 底下的這三種方式所得到的結果都是一樣的0x60fe47b1 123abi.encodeWithSelector(bytes4(kecca">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-04-21T07:40:14.000Z">
-<meta property="article:modified_time" content="2022-06-21T07:42:22.861Z">
+<meta property="article:modified_time" content="2022-06-21T08:13:55.372Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -165,6 +165,12 @@
 <li><code>abi.encodeWithSignature</code>內的方法參數型別如果是 uint，需要寫完整的型別<code>uint256</code></li>
 <li>call 執行完成後回傳的參數是<code>bool</code>與<code>bytes</code><br><strong><code>&lt;address&gt;.call(bytes memory) returns (bool, bytes memory)</code></strong></li>
 </ul>
+<h3 id="call-amp-delegate-call-的差異"><a href="#call-amp-delegate-call-的差異" class="headerlink" title="call &amp; delegate call 的差異"></a><strong>call &amp; delegate call 的差異</strong></h3><ul>
+<li><code>call</code>其他的合約，會在 call 的<code>address</code>合約中改動 data</li>
+<li><code>delegatecall</code>，執行完成會後改動自己合約中的 data</li>
+</ul>
+<p>但是目前發現如果針對同一份合約調用 call 與 delegate call，當執行過 delegatecall，似乎就無法再執行 call，這部分如果有人知道為什麼，再請跟我說一下，謝謝</p>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">contract callee {</span><br><span class="line">    uint public a ;</span><br><span class="line">    uint public b ;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">test</span>(<span class="hljs-params"></span>) public returns (uint){</span><br><span class="line">        a += <span class="hljs-number">10</span>;</span><br><span class="line">        b = a ;</span><br><span class="line">		<span class="hljs-keyword">return</span> b;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line">contract caller {</span><br><span class="line">    uint public a;</span><br><span class="line">    address callee ;</span><br><span class="line"></span><br><span class="line">    <span class="title function_">constructor</span>(<span class="hljs-params">address _address</span>){</span><br><span class="line">        callee = _address;</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">call</span>(<span class="hljs-params"></span>)external {</span><br><span class="line">        callee.<span class="title function_">call</span>(abi.<span class="title function_">encodeWithSignature</span>(<span class="hljs-string">"test()"</span>));</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">delegatecall</span>(<span class="hljs-params"></span>)external{</span><br><span class="line">        callee.<span class="title function_">delegatecall</span>(abi.<span class="title function_">encodeWithSignature</span>(<span class="hljs-string">"test()"</span>));</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
 </body></html>
     
     </div>
