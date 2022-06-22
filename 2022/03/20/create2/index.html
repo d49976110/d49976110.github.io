@@ -26,7 +26,7 @@
 <meta property="og:description" content="目的 透過 create2 可以算出未來會產生出合約的地址 因此可以先將此地址呈現給使用者，讓他們需要儲值時，可以把幣打進去該地址  原本的合約創建方式新合約的地址由創建合約交易的發送者賬戶地址及其 nonce 值計算得到： 合約地址 &#x3D; hash (msg.sender, nonce ) 問題在於，你很難真正佔住地址 1new DeployWithCreate2{salt: bytes32(_s">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-03-20T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-20T14:34:47.065Z">
+<meta property="article:modified_time" content="2022-06-21T13:32:49.835Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -161,7 +161,7 @@
 <li><p>先取得要部署合約的<strong>creation code</strong>，<code>type(DeployWithCreate2).creationCode</code></p>
 </li>
 <li><p>如果部署的合約有參數，則在第二個參數傳入，並使用<code>abi.encode</code><br><code>abi.encodePacked(bytecode, abi.encode(_owner))</code><br>如果有多個參數，則將多個參數包含在 abi.encode 中</p>
-<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">function getBytesCode(address _owner, uint _uint) public pure returns (bytes memory) {</span><br><span class="line">    bytes memory bytecode = type(DeployWithCreate2).creationCode;</span><br><span class="line">    return abi.encodePacked(bytecode, abi.encode(_owner,_uint));</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">getBytesCode</span>(<span class="hljs-params">address _owner, uint _uint</span>) public pure returns (bytes memory) {</span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">DeployWithCreate2</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    <span class="hljs-keyword">return</span> abi.<span class="title function_">encodePacked</span>(bytecode, abi.<span class="title function_">encode</span>(_owner,_uint));</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
 </ul>
 <h2 id="計算地址"><a href="#計算地址" class="headerlink" title="計算地址"></a>計算地址</h2><ul>
 <li>先計算出 hash</li>
