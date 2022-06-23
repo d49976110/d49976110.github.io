@@ -123,6 +123,83 @@
         <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
+            <a href="/2022/04/26/interfaceId/" itemprop="url">Solidity中的interfaceId用法與解說</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2022-04-25T16:10:16.000Z" itemprop="datePublished">26 April 2022</time>
+        </span>
+        
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><h1 id="type-Interface-interfaceId"><a href="#type-Interface-interfaceId" class="headerlink" title="type(Interface).interfaceId"></a>type(Interface).interfaceId</h1><ul>
+<li>主要會返回該介面的 XOR <code>selector(function name)</code>、<code>參數(function parameter)</code>，不管返回值。</li>
+<li>返回值的型別為<code>bytes4</code></li>
+</ul>
+<p>補充：XOR 是兩個運算式上做邏輯互斥，用人話說就是代表兩兩相同時會互相抵銷，舉個例子：</p>
+<p>A XOR B XOR B ⇒ result = A</p>
+<p>A XOR A XOR B XOR B XOR C ⇒ result = C</p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+<th>A XOR B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>回歸到原本的 type(I).interfaceId：</p>
+<ol>
+<li><p>如果該介面是空的，則<code>IID_ITEST</code>返回<code>0x00000000</code></p>
+ <figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>介面擁有相同的函式名稱，即使一個有返回值，另一個沒有，但<code>IID_ITEST</code>結果兩者會一樣</p>
+ <figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params"></span>) external;</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params"></span>) external override { }</span><br><span class="line">}</span><br><span class="line">===========</span><br><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params"></span>) external returns (uint);</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params"></span>) external pure override returns (uint) {</span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>介面擁有相同的函式名稱，參數名稱不一樣，<code>IID_ITEST</code>結果仍兩者會一樣</p>
+ <figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name</span>) external returns (uint);</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name</span>) external pure override returns (uint) {</span><br><span class="line">        <span class="hljs-keyword">return</span> name;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line">===========</span><br><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name2</span>) external returns (uint);</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name2</span>) external pure override returns (uint) {</span><br><span class="line">        <span class="hljs-keyword">return</span> name2;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+</li>
+<li><p>介面擁有相同的函式名稱，但是參數的型別不一樣，則<code>IID_ITEST</code>返回值就會不一樣</p>
+ <figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name</span>) external returns (uint);</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test1</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">uint name</span>) external pure override returns (uint) {</span><br><span class="line">        <span class="hljs-keyword">return</span> name;</span><br><span class="line">    }</span><br><span class="line">}</span><br><span class="line">===========</span><br><span class="line"><span class="hljs-comment">// SPDX-License-Identifier: MIT</span></span><br><span class="line">pragma solidity ^<span class="hljs-number">0.8</span><span class="hljs-number">.11</span>;</span><br><span class="line">interface <span class="title class_">ITest</span> {</span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">address name2</span>) external returns (address);</span><br><span class="line">}</span><br><span class="line">contract <span class="title class_">Test2</span> is <span class="title class_">ITest</span> {</span><br><span class="line">    bytes4 public constant <span class="variable constant_">IID_ITEST</span> = <span class="title function_">type</span>(<span class="title class_">ITest</span>).<span class="hljs-property">interfaceId</span>;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">function</span> <span class="title function_">getTest</span>(<span class="hljs-params">address name2</span>) external pure override returns (address) {</span><br><span class="line">        <span class="hljs-keyword">return</span> name2;</span><br><span class="line">    }</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
+</ol>
+<h2 id="結論"><a href="#結論" class="headerlink" title="結論"></a>結論</h2><p>如果兩個介面的函式名稱與參數的型別都一樣，則會返回相同的值，因此如果兩個介面的<code>type(Interface).interfaceId</code>一樣，就可以確認他們所擁有的函式與函式中的型別都是一樣。</p>
+</body></html>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
             <a href="/2022/04/21/abi-%E8%AA%AA%E6%98%8E/" itemprop="url">Solidity abi 使用說明</a>
         
     </h1>
