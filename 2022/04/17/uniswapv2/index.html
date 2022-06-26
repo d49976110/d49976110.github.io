@@ -25,13 +25,13 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯 Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Erc20合約 配對合約繼承 ERC2">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/images/uniswapv2/uniswap.png">
+<meta property="og:image" content="http://example.com/images/uniswapv2/uniswapV2.png">
 <meta property="og:image" content="http://example.com/images/uniswapv2/pairs.png">
 <meta property="article:published_time" content="2022-04-17T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-26T01:51:23.072Z">
+<meta property="article:modified_time" content="2022-06-26T11:01:09.263Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="http://example.com/images/uniswapv2/uniswap.png">
+<meta name="twitter:image" content="http://example.com/images/uniswapv2/uniswapV2.png">
 
 
 
@@ -157,7 +157,7 @@
 <li><code>user</code>透過核心合約中的<code>factory</code>合約來創建<code>pair</code>合約，並透過<code>router</code>合約來添加或是移除流動性</li>
 </ul>
 <p>因此，周邊合約主要是方便<code>使用者</code>始與<code>核心合約</code>交互使用。可以看作是<code>使用者</code>跟<code>核心合約</code>之間的橋梁</p>
-<h2 id="運行邏輯"><a href="#運行邏輯" class="headerlink" title="運行邏輯"></a>運行邏輯</h2><ul>
+<h1 id="運行邏輯"><a href="#運行邏輯" class="headerlink" title="運行邏輯"></a>運行邏輯</h1><ul>
 <li>Uniswap v2 共有 3 個核心合約，分別為<code>factory(工廠合約)</code>、<code>pair(配對合約)</code>與<code>Erc20合約</code><ul>
 <li>配對合約繼承 ERC20 合約，只是這個合約與一般的 ERC20 多了<code>permit</code>的方法，因此透過 pair 合約創建出來的 token 為 ERC20 token</li>
 </ul>
@@ -192,19 +192,25 @@
 </ul>
 </li>
 </ul>
-<h1 id="核心合約"><a href="#核心合約" class="headerlink" title="核心合約"></a>核心合約</h1><p>uniswap 主要有三份合約</p>
+<h1 id="核心合約"><a href="#核心合約" class="headerlink" title="核心合約"></a>核心合約</h1><p>Uniswap v2 主要有三份合約</p>
 <ul>
-<li><code>factory</code></li>
-<li><code>uniswapERC20</code></li>
-<li><code>pair</code></li>
+<li><code>factory</code>:創建配對合約</li>
+<li><code>pair</code>: 繼承底下 ERC20 合約</li>
+<li><code>UniswapERC20</code>:與一般 ERC20 多 permit 方法</li>
 </ul>
-<p>後續為了加強使用性，加上了<code>router</code></p>
-<p><img src="/images/uniswapv2/uniswap.png" alt="Untitled"></p>
-<h2 id="Factory"><a href="#Factory" class="headerlink" title="Factory"></a>Factory</h2><p>#創建 #排序 #uniswap</p>
+<p><img src="/images/uniswapv2/uniswapV2.png" alt="Untitled"></p>
+<h2 id="Factory"><a href="#Factory" class="headerlink" title="Factory"></a>Factory</h2><p><code>Factory</code>的主要功能是創建 Pair 合約，透過<code>createPair</code>創建，需傳入 tokenA &amp; tokenB</p>
 <ul>
-<li><p>create pairs 的時候就已經先做好 tokenA &amp; tokenB 的排序</p>
-<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">createPair</span>(<span class="hljs-params">address tokenA, address tokenB</span>) external returns (address pair) {</span><br><span class="line">    <span class="hljs-built_in">require</span>(tokenA != tokenB, <span class="hljs-string">'UniswapV2: IDENTICAL_ADDRESSES'</span>);</span><br><span class="line">    (address token0, address token1) = tokenA &lt; tokenB ? (tokenA, tokenB) : (tokenB, tokenA);</span><br><span class="line">    <span class="hljs-built_in">require</span>(token0 != <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: ZERO_ADDRESS'</span>);</span><br><span class="line">    <span class="hljs-built_in">require</span>(getPair[token0][token1] == <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: PAIR_EXISTS'</span>); <span class="hljs-comment">// single check is sufficient</span></span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">UniswapV2Pair</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    bytes32 salt = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(token0, token1));</span><br><span class="line">    assembly {</span><br><span class="line">        pair := <span class="title function_">create2</span>(<span class="hljs-number">0</span>, <span class="title function_">add</span>(bytecode, <span class="hljs-number">32</span>), <span class="title function_">mload</span>(bytecode), salt)</span><br><span class="line">    }</span><br><span class="line">    <span class="title class_">IUniswapV</span>2Pair(pair).<span class="title function_">initialize</span>(token0, token1);</span><br><span class="line">    getPair[token0][token1] = pair;</span><br><span class="line">    getPair[token1][token0] = pair; <span class="hljs-comment">// populate mapping in the reverse direction</span></span><br><span class="line">    allPairs.<span class="title function_">push</span>(pair);</span><br><span class="line">    emit <span class="title class_">PairCreated</span>(token0, token1, pair, allPairs.<span class="hljs-property">length</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure></li>
+<li>在第二行的部分會先做好 tokenA &amp; tokenB 的排序。因為 address 型別的底層為 uint160，所以可以透過比大小排序。</li>
+<li>透過 create2 創建 pair 合約</li>
+<li>創建完 pair 合約後，執行<code>initialize</code>對合約做初始化</li>
 </ul>
+<p>這邊可能會有疑問：</p>
+<ul>
+<li>為什麼使用 create2，而不是直接使用 new contract 加上 constructor ?<br>⇒ 我目前的認知是因為要讓前端可以計算出合約地址，如果有人知道更多詳細內容的，也再請跟我說，感謝</li>
+</ul>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">createPair</span>(<span class="hljs-params">address tokenA, address tokenB</span>) external returns (address pair) {</span><br><span class="line">    <span class="hljs-built_in">require</span>(tokenA != tokenB, <span class="hljs-string">'UniswapV2: IDENTICAL_ADDRESSES'</span>);</span><br><span class="line">    <span class="hljs-comment">//排序</span></span><br><span class="line">    (address token0, address token1) = tokenA &lt; tokenB ? (tokenA, tokenB) : (tokenB, tokenA);</span><br><span class="line">    <span class="hljs-built_in">require</span>(token0 != <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: ZERO_ADDRESS'</span>);</span><br><span class="line">    <span class="hljs-built_in">require</span>(getPair[token0][token1] == <span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="hljs-string">'UniswapV2: PAIR_EXISTS'</span>);</span><br><span class="line">    <span class="hljs-comment">//create2</span></span><br><span class="line">    bytes memory bytecode = <span class="title function_">type</span>(<span class="title class_">UniswapV2Pair</span>).<span class="hljs-property">creationCode</span>;</span><br><span class="line">    bytes32 salt = <span class="title function_">keccak256</span>(abi.<span class="title function_">encodePacked</span>(token0, token1));</span><br><span class="line">    assembly {</span><br><span class="line">        pair := <span class="title function_">create2</span>(<span class="hljs-number">0</span>, <span class="title function_">add</span>(bytecode, <span class="hljs-number">32</span>), <span class="title function_">mload</span>(bytecode), salt)</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-comment">//初始化</span></span><br><span class="line">    <span class="title class_">IUniswapV</span>2Pair(pair).<span class="title function_">initialize</span>(token0, token1);</span><br><span class="line">    getPair[token0][token1] = pair;</span><br><span class="line">    getPair[token1][token0] = pair;</span><br><span class="line">    allPairs.<span class="title function_">push</span>(pair);</span><br><span class="line">    emit <span class="title class_">PairCreated</span>(token0, token1, pair, allPairs.<span class="hljs-property">length</span>);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
 <h2 id="UniswapERC20"><a href="#UniswapERC20" class="headerlink" title="UniswapERC20"></a>UniswapERC20</h2><h3 id="permit-簽章"><a href="#permit-簽章" class="headerlink" title="permit 簽章"></a>permit 簽章</h3><ul>
 <li>簽張的內容：<code>[PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline]</code></li>
 <li>確認簽章的內容為本人後，就會授權該合約使用 user 的 token</li>
