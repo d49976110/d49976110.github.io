@@ -18,17 +18,17 @@
 
 
 
-    <meta name="description" content="整體架構 用户 &#x3D;&gt; 周邊合約 &#x3D;&gt; 核心合約 周邊合約主要是用戶跟核心合約之間的橋梁 運行邏輯： uniswap 分為 3 個核心合約，工廠合約、配對合約與 erc20 合約 核心合約部署時只需要部工廠合約 工廠合約部署時，建構子只需要設定一個手續費管理員 要在交易所中進行交易，操作順序為：創建交易對、添加流動性、交易 添加配對合約時需要提供兩個 token 的地址，工廠合約就可以透">
+    <meta name="description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯 Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Erc20合約 配對合約繼承 ERC2">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Uniswap v2機制說明與程式碼解說">
 <meta property="og:url" content="http://example.com/2022/04/17/uniswapv2/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="整體架構 用户 &#x3D;&gt; 周邊合約 &#x3D;&gt; 核心合約 周邊合約主要是用戶跟核心合約之間的橋梁 運行邏輯： uniswap 分為 3 個核心合約，工廠合約、配對合約與 erc20 合約 核心合約部署時只需要部工廠合約 工廠合約部署時，建構子只需要設定一個手續費管理員 要在交易所中進行交易，操作順序為：創建交易對、添加流動性、交易 添加配對合約時需要提供兩個 token 的地址，工廠合約就可以透">
+<meta property="og:description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯 Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Erc20合約 配對合約繼承 ERC2">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/uniswapv2/uniswap.png">
 <meta property="og:image" content="http://example.com/images/uniswapv2/pairs.png">
 <meta property="article:published_time" content="2022-04-17T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-21T06:20:56.553Z">
+<meta property="article:modified_time" content="2022-06-26T01:51:23.072Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="http://example.com/images/uniswapv2/uniswap.png">
@@ -153,24 +153,42 @@
     <div class="article-entry is-size-6-mobile" itemprop="articleBody">
     
         <html><head></head><body><h1 id="整體架構"><a href="#整體架構" class="headerlink" title="整體架構"></a>整體架構</h1><ul>
-<li><code>用户</code> =&gt; <code>周邊合約</code> =&gt; <code>核心合約</code></li>
-<li>周邊合約主要是用戶跟核心合約之間的橋梁</li>
-<li>運行邏輯：<ul>
-<li>uniswap 分為 3 個核心合約，工廠合約、配對合約與 erc20 合約</li>
-<li>核心合約部署時只需要部工廠合約</li>
-<li>工廠合約部署時，建構子只需要設定一個手續費管理員</li>
-<li>要在交易所中進行交易，操作順序為：創建交易對、添加流動性、交易</li>
-<li>添加配對合約時需要提供兩個 token 的地址，工廠合約就可以透過 create2 方法，為此交易對部署一個配對合約</li>
+<li>合約分為兩個部分，分別為<code>核心合約</code>與<code>周邊合約</code></li>
+<li><code>user</code>透過核心合約中的<code>factory</code>合約來創建<code>pair</code>合約，並透過<code>router</code>合約來添加或是移除流動性</li>
+</ul>
+<p>因此，周邊合約主要是方便<code>使用者</code>始與<code>核心合約</code>交互使用。可以看作是<code>使用者</code>跟<code>核心合約</code>之間的橋梁</p>
+<h2 id="運行邏輯"><a href="#運行邏輯" class="headerlink" title="運行邏輯"></a>運行邏輯</h2><ul>
+<li>Uniswap v2 共有 3 個核心合約，分別為<code>factory(工廠合約)</code>、<code>pair(配對合約)</code>與<code>Erc20合約</code><ul>
+<li>配對合約繼承 ERC20 合約，只是這個合約與一般的 ERC20 多了<code>permit</code>的方法，因此透過 pair 合約創建出來的 token 為 ERC20 token</li>
+</ul>
+</li>
+<li>核心合約部署時只需要部署工廠合約，他會創建出配對合約</li>
+<li>工廠合約部署時，<code>constructor</code>需要設定一個<code>feeToSetter(手續費管理員)</code></li>
+<li>要在交易所中進行交易，操作順序為：<ul>
+<li>透過工廠合約創建配對合約</li>
+<li>透過 router 合約，針對此配對合約添加流動性</li>
+<li>透過 router 合約執行 swap token</li>
+</ul>
+</li>
+<li>添加配對合約時需要提供兩個 token 的地址，工廠合約就可以透過<a href="../../../03/20/create2">create2</a>方法，為此交易對部署一個配對合約<ul>
 <li>兩個 token 地址按大小排序後，透過 hash，則成為 create2 的 salt</li>
-<li>配對合約的地址，是可以透過兩個 token 地址進行 create2 計算而得</li>
-<li>用戶可以將兩個 token 存入到配對合約中，然後再配對合約中為用戶生成 LP token</li>
-<li>此 LP token 即為流動性</li>
-<li>用戶可以取出流動性，配對合約就會銷毀該流動性 token，並將兩種 token 同時返回給用戶</li>
-<li>返還的數量將根據目前兩種 token 的儲備量重新計算，如果有手續費收益，用戶也將獲得收益</li>
-<li>用戶可以透過一種 token 交換另一種 token，配對合約將扣除千分之 3 的手續費</li>
-<li>在 uniswap 的合約中，還有周邊的路由合約，用來提供更好的操作體驗</li>
-<li>路由合約擁有三個主要的操作方法：添加流動性、移除流動性、交換</li>
-<li>雖然配對合約已經可以完成所有的交易，但是透過路由合約配合前端可以獲得更好的用戶體驗</li>
+<li>透過<code>type(UniswapV2Pair).creationCode</code>取得配對合約的 byte code</li>
+</ul>
+</li>
+<li>使用者可以將兩個 token 存入到配對合約中，然後透過配對合約中的<code>mint</code>為使用者生成 token<ul>
+<li>此 token 就是所謂的<code>LP token</code>即為<code>流動性</code>，同時也是 ERC20 token</li>
+</ul>
+</li>
+<li>使用者可以透過配對合約中的<code>burn</code>取出流動性，<code>配對合約</code>就會銷毀該 LP token，並將兩種 token 按照池子內的比例，同時返回給用戶<ul>
+<li>返還的數量將根據目前兩種 token 的<code>reserve(儲備量)</code>重新計算，如果有手續費收益，用戶也在此動作執行時將獲得收益</li>
+</ul>
+</li>
+<li>使用者可以透過配對合約中的<code>swap</code>，將 A token 交換另一種 B token，配對合約將扣除千分之 3 的手續費<ul>
+<li>執行該<code>swap</code>時，需要先將 A token 發送到配對合約(加上手續費)，才能順利兌換成 B token</li>
+</ul>
+</li>
+<li>配對合約已經可以完成所有的交易，但是為了讓使用者增加更好的體驗，Uniswap v2 的合約中周邊的<code>router合約</code>，透過該合約配合前端可以使整體體驗更流暢。<ul>
+<li>router 合約擁有三個主要的操作方法：添加流動性、移除流動性、交換</li>
 </ul>
 </li>
 </ul>
