@@ -28,7 +28,7 @@
 <meta property="og:image" content="http://example.com/images/uniswapv2/uniswapV2.png">
 <meta property="og:image" content="http://example.com/images/uniswapv2/pairs.png">
 <meta property="article:published_time" content="2022-04-17T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-27T07:40:36.244Z">
+<meta property="article:modified_time" content="2022-06-27T07:55:38.532Z">
 <meta property="article:author" content="Brian">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="http://example.com/images/uniswapv2/uniswapV2.png">
@@ -240,7 +240,7 @@
 <ul>
 <li>第一行，取得當前的儲備量<code>_reserve0</code> &amp; <code>_reserve1</code></li>
 <li>取得當前合約的 token0 &amp; token1 餘額。為什麼會這樣寫，是因為要執行此 function 時，會需要先將要鑄造成流動性的 token0 &amp; token1 先傳進此合約。</li>
-<li>當前此合約 token0 的 balance 減去當前儲備量的_reserve0，則是代表是為了要鑄造成流動性而剛傳入的 token0 數量</li>
+<li>當前此合約 token0 的 balance 減去當前儲備量的_reserve0，則是代表是為了要鑄造流動性而剛傳入的 token0 數量</li>
 </ul>
 <p>待完成…</p>
 <hr>
