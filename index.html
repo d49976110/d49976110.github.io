@@ -97,6 +97,9 @@
                href="/archives">文章列表</a>
             
             <a class="navbar-item "
+               href="/categories">類別</a>
+            
+            <a class="navbar-item "
                href="/about">About</a>
             
         </div>
@@ -127,6 +130,74 @@
 
     <section class="section">
     <div class="container">
+    
+        <article class="article content gallery" itemscope itemprop="blogPost">
+    <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
+        
+            <a href="/2022/06/09/uniswapv2(2)/" itemprop="url">Uniswap v2機制說明與程式碼解說(2)</a>
+        
+    </h1>
+    <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
+        <span class="column is-narrow">
+            <time datetime="2022-06-09T11:37:14.000Z" itemprop="datePublished">9 June 2022</time>
+        </span>
+        
+        <span class="column is-narrow article-category">
+            <i class="far fa-folder"></i>
+            <a class="article-category-link" href="/categories/uniswapv2/">uniswapv2</a>
+        </span>
+        
+        
+    </div>
+    <div class="article-entry is-size-6-mobile" itemprop="articleBody">
+    
+        <html><head></head><body><h1 id="Pairs"><a href="#Pairs" class="headerlink" title="Pairs"></a>Pairs</h1><p>Pair 合約主要有三個重要的 function，分別是 mint、burn、swap</p>
+<p><img src="/images/uniswapv2/pairs.png" alt="Untitled"></p>
+<h3 id="mint"><a href="#mint" class="headerlink" title="mint"></a>mint</h3><p>主要是用來創造流動性，返回值為流動性的數值。</p>
+<ul>
+<li>初始流動性算法為初次注入的<code>token0</code> &amp; <code>token1</code>數量相乘，開根號</li>
+<li>後續流動性算法，則是按照<code>token0</code>(或是<code>token1</code>)投入的數量與當前池子中的<code>token0</code>(或是<code>token1</code>)數量的比例，乘上當前所有的流動性。</li>
+</ul>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">mint</span>(<span class="hljs-params">address to</span>) external lock returns (uint liquidity) {</span><br><span class="line">    (uint112 _reserve0, uint112 _reserve1,) = <span class="title function_">getReserves</span>();</span><br><span class="line">    uint balance0 = <span class="title class_">IERC20</span>(token0).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    uint balance1 = <span class="title class_">IERC20</span>(token1).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    <span class="hljs-comment">//token傳進來的量</span></span><br><span class="line">    uint amount0 = balance0.<span class="title function_">sub</span>(_reserve0);</span><br><span class="line">    uint amount1 = balance1.<span class="title function_">sub</span>(_reserve1);</span><br><span class="line"></span><br><span class="line">    bool feeOn = <span class="title function_">_mintFee</span>(_reserve0, _reserve1);</span><br><span class="line">    <span class="hljs-comment">//LP的totalsupply</span></span><br><span class="line">    uint _totalSupply = totalSupply; <span class="hljs-comment">// gas savings, must be defined here since totalSupply can update in _mintFee</span></span><br><span class="line">    <span class="hljs-keyword">if</span> (_totalSupply == <span class="hljs-number">0</span>) {</span><br><span class="line">        <span class="hljs-comment">// x*y開根號，首次鑄造攻擊</span></span><br><span class="line">        liquidity = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(amount0.<span class="title function_">mul</span>(amount1)).<span class="title function_">sub</span>(<span class="variable constant_">MINIMUM_LIQUIDITY</span>);</span><br><span class="line">       <span class="title function_">_mint</span>(<span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="variable constant_">MINIMUM_LIQUIDITY</span>); <span class="hljs-comment">// permanently lock the first MINIMUM_LIQUIDITY tokens</span></span><br><span class="line">    } <span class="hljs-keyword">else</span> {</span><br><span class="line">        <span class="hljs-comment">// amount0/_reserve0 * totalSupply</span></span><br><span class="line">        liquidity = <span class="title class_">Math</span>.<span class="title function_">min</span>(amount0.<span class="title function_">mul</span>(_totalSupply) / _reserve0, amount1.<span class="title function_">mul</span>(_totalSupply) / _reserve1);</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-built_in">require</span>(liquidity &gt; <span class="hljs-number">0</span>, <span class="hljs-string">'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED'</span>);</span><br><span class="line">    <span class="title function_">_mint</span>(to, liquidity);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">//balance:目前合約擁有的餘額   reserve:尚未更新前的儲備量</span></span><br><span class="line">    <span class="title function_">_update</span>(balance0, balance1, _reserve0, _reserve1);</span><br><span class="line">    <span class="hljs-keyword">if</span> (feeOn) kLast = <span class="title function_">uint</span>(reserve0).<span class="title function_">mul</span>(reserve1); <span class="hljs-comment">// reserve0 and reserve1 are up-to-date</span></span><br><span class="line">    emit <span class="title class_">Mint</span>(msg.<span class="hljs-property">sender</span>, amount0, amount1);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li><p>第一行，取得當前的儲備量<code>_reserve0</code> &amp; <code>_reserve1</code></p>
+</li>
+<li><p>取得當前合約的 token0 &amp; token1 餘額。為什麼會這樣寫，是因為要執行此 function 時，會需要先將要鑄造成流動性的 token0 &amp; token1 先傳進此合約。</p>
+</li>
+<li><p>當前此合約 token0 的 balance 減去當前儲備量的_reserve0，則是代表是為了要鑄造流動性而剛傳入的 token0 數量</p>
+</li>
+<li><p>取得目前所有的流動性<code>totalSupply</code></p>
+</li>
+<li><p>如果目前沒有流動性，則根據傳進來的 token0 &amp; token1 的數量來建立流動性。算法為兩個相乘開根號。</p>
+<ul>
+<li>這邊減去<code>MINIMUM_LIQUIDITY</code>，主要是為了避免首次鑄造攻擊。</li>
+</ul>
+</li>
+<li><p>如果已經有流動性，則根據傳進來的 token0 &amp; token1 的數量，按照比例，計算出相對應的流動性，則一取最小值。</p>
+</li>
+<li><p>確認流動性大於 0，透過<code>_mint()</code>來產生流動性</p>
+</li>
+<li><p>將當前合約中兩個 token 分別的 balance，更新至 reserve</p>
+<ul>
+<li><code>balance</code>:目前合約擁有的餘額 <code>reserve</code>:尚未更新前的儲備量</li>
+</ul>
+</li>
+<li><p>如果 feeOn 有開啟，則更新 k 值</p>
+</li>
+</ul>
+<hr>
+<p>歡迎轉載與分享，但請註明出處，感謝～<br>版權聲明：本文為 <a target="_blank" rel="noopener" href="https://bc-blog.live/">bc-blog.live</a> 文章，遵循 CC 4.0 BY-SA 版權協議，轉載請附上原文出處鏈接和本聲明。</p>
+</body></html>
+    
+    </div>
+    
+    
+</article>
+
+
+
+
     
         <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
@@ -287,12 +358,17 @@
         <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            <a href="/2022/04/17/uniswapv2/" itemprop="url">Uniswap v2機制說明與程式碼解說</a>
+            <a href="/2022/04/17/uniswapv2(1)/" itemprop="url">Uniswap v2機制說明與程式碼解說(1)</a>
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
             <time datetime="2022-04-17T11:37:14.000Z" itemprop="datePublished">17 April 2022</time>
+        </span>
+        
+        <span class="column is-narrow article-category">
+            <i class="far fa-folder"></i>
+            <a class="article-category-link" href="/categories/uniswapv2/">uniswapv2</a>
         </span>
         
         
@@ -375,21 +451,6 @@
 <li>將這些訊息透過 keccak256 加密後可得到 <code>digest</code><figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abi.<span class="title function_">encodePacked</span>(<span class="hljs-string">'\x19\x01'</span>, <span class="variable constant_">DOMAIN_SEPARATOR</span>, <span class="title function_">keccak256</span>(abi.<span class="title function_">encode</span>(<span class="variable constant_">PERMIT_TYPEHASH</span>, owner, spender, value, nonces[owner]++, deadline)));</span><br></pre></td></tr></tbody></table></figure></li>
 <li>將<code>digest</code>與<code>v、s、r</code>透過<code>ecrecover</code>，則可以得到一組地址，將此地址與 owner 比對，如果一樣，則執行<code>_approve</code></li>
 </ul>
-<h2 id="Pairs"><a href="#Pairs" class="headerlink" title="Pairs"></a>Pairs</h2><p>Pair 合約主要有三個重要的 function，分別是 mint、burn、swap</p>
-<p><img src="/images/uniswapv2/pairs.png" alt="Untitled"></p>
-<h3 id="mint"><a href="#mint" class="headerlink" title="mint"></a>mint</h3><p>主要是用來創造流動性，返回值為流動性的數值。</p>
-<ul>
-<li>初始流動性算法為初次注入的<code>token0</code> &amp; <code>token1</code>數量相乘，開根號</li>
-<li>後續流動性算法，則是按照<code>token0</code>(或是<code>token1</code>)投入的數量與當前池子中的<code>token0</code>(或是<code>token1</code>)數量的比例，乘上當前所有的流動性。</li>
-</ul>
-<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">mint</span>(<span class="hljs-params">address to</span>) external lock returns (uint liquidity) {</span><br><span class="line">    (uint112 _reserve0, uint112 _reserve1,) = <span class="title function_">getReserves</span>();</span><br><span class="line">    uint balance0 = <span class="title class_">IERC20</span>(token0).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    uint balance1 = <span class="title class_">IERC20</span>(token1).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    <span class="hljs-comment">//token傳進來的量</span></span><br><span class="line">    uint amount0 = balance0.<span class="title function_">sub</span>(_reserve0);</span><br><span class="line">    uint amount1 = balance1.<span class="title function_">sub</span>(_reserve1);</span><br><span class="line"></span><br><span class="line">    bool feeOn = <span class="title function_">_mintFee</span>(_reserve0, _reserve1);</span><br><span class="line">    <span class="hljs-comment">//LP的totalsupply</span></span><br><span class="line">    uint _totalSupply = totalSupply; <span class="hljs-comment">// gas savings, must be defined here since totalSupply can update in _mintFee</span></span><br><span class="line">    <span class="hljs-keyword">if</span> (_totalSupply == <span class="hljs-number">0</span>) {</span><br><span class="line">        <span class="hljs-comment">// x*y開根號，首次鑄造攻擊</span></span><br><span class="line">        liquidity = <span class="title class_">Math</span>.<span class="title function_">sqrt</span>(amount0.<span class="title function_">mul</span>(amount1)).<span class="title function_">sub</span>(<span class="variable constant_">MINIMUM_LIQUIDITY</span>);</span><br><span class="line">       <span class="title function_">_mint</span>(<span class="title function_">address</span>(<span class="hljs-number">0</span>), <span class="variable constant_">MINIMUM_LIQUIDITY</span>); <span class="hljs-comment">// permanently lock the first MINIMUM_LIQUIDITY tokens</span></span><br><span class="line">    } <span class="hljs-keyword">else</span> {</span><br><span class="line">        <span class="hljs-comment">// amount0/_reserve0 * totalSupply</span></span><br><span class="line">        liquidity = <span class="title class_">Math</span>.<span class="title function_">min</span>(amount0.<span class="title function_">mul</span>(_totalSupply) / _reserve0, amount1.<span class="title function_">mul</span>(_totalSupply) / _reserve1);</span><br><span class="line">    }</span><br><span class="line">    <span class="hljs-built_in">require</span>(liquidity &gt; <span class="hljs-number">0</span>, <span class="hljs-string">'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED'</span>);</span><br><span class="line">    <span class="title function_">_mint</span>(to, liquidity);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">//balance:目前合約擁有的餘額   reserve:尚未更新前的儲備量</span></span><br><span class="line">    <span class="title function_">_update</span>(balance0, balance1, _reserve0, _reserve1);</span><br><span class="line">    <span class="hljs-keyword">if</span> (feeOn) kLast = <span class="title function_">uint</span>(reserve0).<span class="title function_">mul</span>(reserve1); <span class="hljs-comment">// reserve0 and reserve1 are up-to-date</span></span><br><span class="line">    emit <span class="title class_">Mint</span>(msg.<span class="hljs-property">sender</span>, amount0, amount1);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
-
-<ul>
-<li>第一行，取得當前的儲備量<code>_reserve0</code> &amp; <code>_reserve1</code></li>
-<li>取得當前合約的 token0 &amp; token1 餘額。為什麼會這樣寫，是因為要執行此 function 時，會需要先將要鑄造成流動性的 token0 &amp; token1 先傳進此合約。</li>
-<li>當前此合約 token0 的 balance 減去當前儲備量的_reserve0，則是代表是為了要鑄造流動性而剛傳入的 token0 數量</li>
-</ul>
-<p>待完成…</p>
 <hr>
 <p>歡迎轉載與分享，但請註明出處，感謝～<br>版權聲明：本文為 <a target="_blank" rel="noopener" href="https://bc-blog.live/">bc-blog.live</a> 文章，遵循 CC 4.0 BY-SA 版權協議，轉載請附上原文出處鏈接和本聲明。</p>
 </body></html>
