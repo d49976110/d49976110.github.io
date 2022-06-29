@@ -162,7 +162,7 @@
     
         <html><head></head><body><h1 id="Pairs"><a href="#Pairs" class="headerlink" title="Pairs"></a>Pairs</h1><p>Pair 合約主要有三個重要的 function，分別是 mint、burn、swap</p>
 <p><img src="/images/uniswapv2/pairs.png" alt="Untitled"></p>
-<h3 id="mint"><a href="#mint" class="headerlink" title="mint"></a>mint</h3><p>主要是用來創造流動性，返回值為流動性的數值。</p>
+<h2 id="mint"><a href="#mint" class="headerlink" title="mint"></a>mint</h2><p>主要是用來創造流動性，返回值為流動性的數值。</p>
 <ul>
 <li>初始流動性算法為初次注入的<code>token0</code> &amp; <code>token1</code>數量相乘，開根號</li>
 <li>後續流動性算法，則是按照<code>token0</code>(或是<code>token1</code>)投入的數量與當前池子中的<code>token0</code>(或是<code>token1</code>)數量的比例，乘上當前所有的流動性。</li>
@@ -194,6 +194,30 @@
 </li>
 <li><p>如果 feeOn 有開啟，則更新 k 值</p>
 </li>
+</ul>
+<h2 id="burn"><a href="#burn" class="headerlink" title="burn"></a>burn</h2><p>用於銷毀流動性，並返回相對應的<code>token0</code> &amp; <code>token1</code>的數量</p>
+<ul>
+<li>一樣需要先將要銷毀的流動性，傳入到此合約中</li>
+</ul>
+<figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">function</span> <span class="title function_">burn</span>(<span class="hljs-params">address to</span>) external lock returns (uint amount0, uint amount1) {</span><br><span class="line">    (uint112 _reserve0, uint112 _reserve1,) = <span class="title function_">getReserves</span>(); <span class="hljs-comment">// gas savings</span></span><br><span class="line">    address _token0 = token0;                                <span class="hljs-comment">// gas savings</span></span><br><span class="line">    address _token1 = token1;                                <span class="hljs-comment">// gas savings</span></span><br><span class="line">    uint balance0 = <span class="title class_">IERC20</span>(_token0).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    uint balance1 = <span class="title class_">IERC20</span>(_token1).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    <span class="hljs-comment">//user傳進來的lp token</span></span><br><span class="line">    uint liquidity = balanceOf[<span class="title function_">address</span>(<span class="variable language_">this</span>)];</span><br><span class="line"></span><br><span class="line">    bool feeOn = <span class="title function_">_mintFee</span>(_reserve0, _reserve1);</span><br><span class="line">    uint _totalSupply = totalSupply;</span><br><span class="line">    <span class="hljs-comment">// amount0 = liquidity/_totalSupply * balance0;</span></span><br><span class="line">    amount0 = liquidity.<span class="title function_">mul</span>(balance0) / _totalSupply; <span class="hljs-comment">// using balances ensures pro-rata distribution</span></span><br><span class="line">    amount1 = liquidity.<span class="title function_">mul</span>(balance1) / _totalSupply; <span class="hljs-comment">// using balances ensures pro-rata distribution</span></span><br><span class="line">    <span class="hljs-built_in">require</span>(amount0 &gt; <span class="hljs-number">0</span> &amp;&amp; amount1 &gt; <span class="hljs-number">0</span>, <span class="hljs-string">'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED'</span>);</span><br><span class="line">    <span class="title function_">_burn</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>), liquidity);</span><br><span class="line">    <span class="title function_">_safeTransfer</span>(_token0, to, amount0);</span><br><span class="line">    <span class="title function_">_safeTransfer</span>(_token1, to, amount1);</span><br><span class="line">    balance0 = <span class="title class_">IERC20</span>(_token0).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line">    balance1 = <span class="title class_">IERC20</span>(_token1).<span class="title function_">balanceOf</span>(<span class="title function_">address</span>(<span class="variable language_">this</span>));</span><br><span class="line"></span><br><span class="line">    <span class="title function_">_update</span>(balance0, balance1, _reserve0, _reserve1);</span><br><span class="line">    <span class="hljs-keyword">if</span> (feeOn) kLast = <span class="title function_">uint</span>(reserve0).<span class="title function_">mul</span>(reserve1); <span class="hljs-comment">// reserve0 and reserve1 are up-to-date</span></span><br><span class="line">    emit <span class="title class_">Burn</span>(msg.<span class="hljs-property">sender</span>, amount0, amount1, to);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li>跟 mint 一樣，先取得當前的儲備量</li>
+<li>計算當前合約中的<code>balance</code></li>
+<li>這邊的<code>liquidity</code>為使用者傳進來的 LP token<ul>
+<li>因為基本上 pair 合約 mint 後，都是直接給使用者 LP token，所以合約平時不會有 LP token</li>
+</ul>
+</li>
+<li><code>feeOn</code>有開啟，就執行_mintFee，但是由於目前 Uniswap v2 都未開啟 feeOn，這部分就先跳過</li>
+<li><code>amount0</code> &amp; <code>amount1</code>為計算應返回的 token0 &amp; token1 數量<ul>
+<li>主要是透過使用者傳進來的 LP token 比例與總發行的 LP token 比例，來計算應返回的數量<br>改成這樣寫會更直觀<code>amount0 = liquidity/_totalSupply * balance0;</code></li>
+</ul>
+</li>
+<li>需要兩者返回的數量都要大於 0</li>
+<li>執行_burn，銷毀 LP token</li>
+<li>透過<code>_safeTransfer</code>將<code>amount0</code> &amp; <code>amount1</code>返回給使用者</li>
+<li>執行<code>_update</code>，將當前合約剩下的<code>balance</code>更新至儲備量</li>
+<li>如果 feeOn 有開啟，則更新 k 值</li>
 </ul>
 <hr>
 <p>歡迎轉載與分享，但請註明出處，感謝～<br>版權聲明：本文為 <a target="_blank" rel="noopener" href="https://bc-blog.live/">bc-blog.live</a> 文章，遵循 CC 4.0 BY-SA 版權協議，轉載請附上原文出處鏈接和本聲明。</p>
