@@ -134,12 +134,12 @@
         <article class="article content gallery" itemscope itemprop="blogPost">
     <h1 class="article-title is-size-3 is-size-4-mobile" itemprop="name">
         
-            <a href="/2022/06/09/uniswapv2(2)/" itemprop="url">Uniswap v2機制說明與程式碼解說(2)</a>
+            <a href="/2022/05/18/uniswapv2(2)/" itemprop="url">Uniswap v2機制說明與程式碼解說(2)</a>
         
     </h1>
     <div class="article-meta columns is-variable is-1 is-multiline is-mobile is-size-7-mobile">
         <span class="column is-narrow">
-            <time datetime="2022-06-09T11:37:14.000Z" itemprop="datePublished">9 June 2022</time>
+            <time datetime="2022-05-18T11:37:14.000Z" itemprop="datePublished">18 May 2022</time>
         </span>
         
         <span class="column is-narrow article-category">
@@ -209,6 +209,33 @@
 <li>透過<code>_safeTransfer</code>將<code>amount0</code> &amp; <code>amount1</code>返回給使用者</li>
 <li>執行<code>_update</code>，將當前合約剩下的<code>balance</code>更新至儲備量</li>
 <li>如果 feeOn 有開啟，則更新 k 值</li>
+</ul>
+<h3 id="swap"><a href="#swap" class="headerlink" title="swap"></a>swap</h3><p>主要用於 token0 與 token1 兩個幣種間的交換</p>
+<ul>
+<li>一樣需要先傳進 token0 到合約，按照比例兌換出 token1</li>
+<li>比較特別的地方在於此 swap 功能同時也開放了閃電貸(Flash loan)的接口</li>
+</ul>
+<figure class="highlight plaintext hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {</span><br><span class="line">    require(amount0Out &gt; 0 || amount1Out &gt; 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');</span><br><span class="line">    (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings</span><br><span class="line">    require(amount0Out &lt; _reserve0 &amp;&amp; amount1Out &lt; _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');</span><br><span class="line"></span><br><span class="line">    uint balance0;</span><br><span class="line">    uint balance1;</span><br><span class="line">    { // scope for _token{0,1}, avoids stack too deep errors</span><br><span class="line">    address _token0 = token0;</span><br><span class="line">    address _token1 = token1;</span><br><span class="line">    require(to != _token0 &amp;&amp; to != _token1, 'UniswapV2: INVALID_TO');</span><br><span class="line">    if (amount0Out &gt; 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens</span><br><span class="line">    if (amount1Out &gt; 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens</span><br><span class="line">    if (data.length &gt; 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);</span><br><span class="line">    balance0 = IERC20(_token0).balanceOf(address(this));</span><br><span class="line">    balance1 = IERC20(_token1).balanceOf(address(this));</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    uint amount0In = balance0 &gt; _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;</span><br><span class="line">    uint amount1In = balance1 &gt; _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;</span><br><span class="line">    require(amount0In &gt; 0 || amount1In &gt; 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');</span><br><span class="line">    { // scope for reserve{0,1}Adjusted, avoids stack too deep errors</span><br><span class="line">		//按照注入回來的資產量計算手續費</span><br><span class="line">    uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));</span><br><span class="line">    uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));</span><br><span class="line">    require(balance0Adjusted.mul(balance1Adjusted) &gt;= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');</span><br><span class="line">    }</span><br><span class="line"></span><br><span class="line">    _update(balance0, balance1, _reserve0, _reserve1);</span><br><span class="line">    emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);</span><br><span class="line">}</span><br></pre></td></tr></tbody></table></figure>
+
+<ul>
+<li>傳進來的 amount0Out 或是 amount1Out，其中一個必須要大於 0，當然可以兩者都大於 0</li>
+<li>一樣取得當前的儲備量</li>
+<li>要 output 的值需要小於當前的儲備量</li>
+<li>傳送給的<code>to</code>，不能是 token0 &amp; token1 的地址</li>
+<li>將<code>amount0Out</code>、<code>amount1Out</code>傳給<code>to</code>的地址<ul>
+<li>這邊比較特別是如果使用者直接 call 此方法，沒有透過 router 先將 token 傳進到此合約，一樣會將<code>amount0Out</code>傳給<code>to</code>。</li>
+<li>此時可能會有疑問，那這樣是否直接 call 這合約，就可以進行轉幣套利，答案是不能，原因在於下面第十行的這一段<code>require(balance0Adjusted.mul(balance1Adjusted) &gt;= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');</code><br>執行此方法時，最後需要此合約剩下的 balance 扣除掉手續費後相乘，大於原來的儲備量相乘。所以如果沒有最後合約中的餘額沒有大於原始的儲備量，即會<code>revert</code></li>
+<li>但此方法可以讓使用者先借出 token，並透過<code>IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);</code>去執行其他的邏輯，最後執行完成時，再歸還原先的金額加上千分之 3 的手續費即可。<br>因此這是一個先花後支付的設計，也就是能夠執行的閃電貸(Flash Loan)的原因</li>
+</ul>
+</li>
+<li>取得當前合約兩種 token 的 balance</li>
+<li><code>amount0In</code> &amp; <code>amount1In</code>為計算返回的 token 數量，手續費也是以此數量為標準</li>
+<li><code>balanceAdjusted</code>為計算當前合約扣除手續費後的餘額，用當前的餘額扣除返回數量 token 數量的千分之三，則為原始合約應有的數量，等於<code>reserve</code>。<br><code>balance0</code>為當前合約餘額，<code>reserve</code>則為執行 swap 前合約的餘額<br>$balance0=\frac{3}{1000}\cdot Amount0Out(fee) + reserve0$<br>$=&gt;reserve = balance0 - \frac{3}{1000}\cdot Amount0Out(fee)$<br>$=&gt;balanceAdjusted = balance0 - \frac{3}{1000}\cdot Amount0Out(fee)$</li>
+<li>兩個原始數量相乘則需大於或等於原始的_reserve0 * _reserve1，也就是 k 值。<ul>
+<li>這邊<code>mul(1000**2)</code>是因為 solidity 沒有小數點，因此計算<code>balanceAdjusted</code>時都各乘上了 1000，因此要除回來。</li>
+</ul>
+</li>
+<li>執行<code>_update</code>，將當前合約剩下的<code>balance</code>更新至儲備量</li>
 </ul>
 <hr>
 <p>歡迎轉載與分享，但請註明出處，感謝～<br>版權聲明：本文為 <a target="_blank" rel="noopener" href="https://bc-blog.live/">bc-blog.live</a> 文章，遵循 CC 4.0 BY-SA 版權協議，轉載請附上原文出處鏈接和本聲明。</p>
