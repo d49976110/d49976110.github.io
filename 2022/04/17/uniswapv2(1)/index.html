@@ -18,16 +18,16 @@
 
 
 
-    <meta name="description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯 Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Erc20合約 配對合約繼承 ERC2">
+    <meta name="description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯建議先瀏覽即可，閱讀完後再回頭看  Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Er">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Uniswap v2機制說明與程式碼解說(1)">
 <meta property="og:url" content="http://example.com/2022/04/17/uniswapv2(1)/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯 Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Erc20合約 配對合約繼承 ERC2">
+<meta property="og:description" content="整體架構 合約分為兩個部分，分別為核心合約與周邊合約 user透過核心合約中的factory合約來創建pair合約，並透過router合約來添加或是移除流動性  因此，周邊合約主要是方便使用者始與核心合約交互使用。可以看作是使用者跟核心合約之間的橋梁 運行邏輯建議先瀏覽即可，閱讀完後再回頭看  Uniswap v2 共有 3 個核心合約，分別為factory(工廠合約)、pair(配對合約)與Er">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/images/uniswapv2/uniswapV2.png">
 <meta property="article:published_time" content="2022-04-17T11:37:14.000Z">
-<meta property="article:modified_time" content="2022-06-28T04:08:47.843Z">
+<meta property="article:modified_time" content="2022-08-24T08:09:51.101Z">
 <meta property="article:author" content="Brian">
 <meta property="article:tag" content="uniswapv2">
 <meta name="twitter:card" content="summary_large_image">
@@ -165,7 +165,8 @@
 <li><code>user</code>透過核心合約中的<code>factory</code>合約來創建<code>pair</code>合約，並透過<code>router</code>合約來添加或是移除流動性</li>
 </ul>
 <p>因此，周邊合約主要是方便<code>使用者</code>始與<code>核心合約</code>交互使用。可以看作是<code>使用者</code>跟<code>核心合約</code>之間的橋梁</p>
-<h1 id="運行邏輯"><a href="#運行邏輯" class="headerlink" title="運行邏輯"></a>運行邏輯</h1><ul>
+<h1 id="運行邏輯"><a href="#運行邏輯" class="headerlink" title="運行邏輯"></a>運行邏輯</h1><p>建議先瀏覽即可，閱讀完後再回頭看</p>
+<ul>
 <li>Uniswap v2 共有 3 個核心合約，分別為<code>factory(工廠合約)</code>、<code>pair(配對合約)</code>與<code>Erc20合約</code><ul>
 <li>配對合約繼承 ERC20 合約，只是這個合約與一般的 ERC20 多了<code>permit</code>的方法，因此透過 pair 合約創建出來的 token 為 ERC20 token</li>
 </ul>
@@ -233,7 +234,7 @@
 </ul>
 </li>
 <li>完成後，前端先解析此簽章，得出<code>v、s、r</code>，連同傳入 owner、spender、value、deadline，一併傳進<code>permit</code>。這邊的 owner、spender、value、deadline，也就是上面讓前端使用者簽名的訊息內容</li>
-<li>將這些訊息透過 keccak256 加密後可得到 <code>digest</code><figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abi.<span class="title function_">encodePacked</span>(<span class="hljs-string">'\x19\x01'</span>, <span class="variable constant_">DOMAIN_SEPARATOR</span>, <span class="title function_">keccak256</span>(abi.<span class="title function_">encode</span>(<span class="variable constant_">PERMIT_TYPEHASH</span>, owner, spender, value, nonces[owner]++, deadline)));</span><br></pre></td></tr></tbody></table></figure></li>
+<li>將這些訊息透過 keccak256 加密後可得到 <code>digest</code><figure class="highlight js hljs"><table><tbody><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">abi.<span class="title function_">encodePacked</span>(</span><br><span class="line">    <span class="hljs-string">"\x19\x01"</span>,</span><br><span class="line">    <span class="variable constant_">DOMAIN_SEPARATOR</span>,</span><br><span class="line">    <span class="title function_">keccak256</span>(abi.<span class="title function_">encode</span>(<span class="variable constant_">PERMIT_TYPEHASH</span>, owner, spender, value, nonces[owner]++, deadline))</span><br><span class="line">);</span><br></pre></td></tr></tbody></table></figure></li>
 <li>將<code>digest</code>與<code>v、s、r</code>透過<code>ecrecover</code>，則可以得到一組地址，將此地址與 owner 比對，如果一樣，則執行<code>_approve</code></li>
 </ul>
 <hr>
